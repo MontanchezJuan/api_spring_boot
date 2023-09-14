@@ -20,7 +20,7 @@ import com.mssecurity.mssecurity.Repositories.RoleRepository;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/roles")
+@RequestMapping("api/roles")
 public class RolesController {
     @Autowired
     private RoleRepository theRoleRepository;

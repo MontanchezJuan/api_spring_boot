@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/security")
+@RequestMapping("api/public/security")
 public class SecurityController {
     @Autowired
     private UserRepository theUserRepository;
