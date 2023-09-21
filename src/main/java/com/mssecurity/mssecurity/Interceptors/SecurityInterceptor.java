@@ -1,53 +1,87 @@
 package com.mssecurity.mssecurity.Interceptors;
 
+import com.mssecurity.mssecurity.Models.Permission;
+import com.mssecurity.mssecurity.Models.Role;
+import com.mssecurity.mssecurity.Models.RolePermission;
+import com.mssecurity.mssecurity.Models.User;
+import com.mssecurity.mssecurity.Repositories.PermissionRepository;
+import com.mssecurity.mssecurity.Repositories.RolePermissionRepository;
+import com.mssecurity.mssecurity.Repositories.UserRepository;
+import com.mssecurity.mssecurity.Services.JWTService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import com.mssecurity.mssecurity.Services.JWTService;
-
 @Component
 public class SecurityInterceptor implements HandlerInterceptor {
-    private static final String BEARER_PREFIX = "Bearer ";
-
     @Autowired
     private JWTService jwtService;
 
+    @Autowired
+    private PermissionRepository thePermissionRepository;
+
+    @Autowired
+    private UserRepository theUserRepository;
+
+    @Autowired
+    private RolePermissionRepository theRolePermissionRepository;
+
+    private static final String BEARER_PREFIX = "Bearer ";
+
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
+    public boolean preHandle(HttpServletRequest request,
+            HttpServletResponse response,
             Object handler)
-
             throws Exception {
-        boolean no_success = false;
+
+        boolean success = true;
+
         String authorizationHeader = request.getHeader("Authorization");
-
-        if (authorizationHeader != null &&
-                authorizationHeader.startsWith(BEARER_PREFIX)) {
-
+        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
             String token = authorizationHeader.substring(BEARER_PREFIX.length());
-            // Verifica el token aquí, por ejemplo, con un servicio de autenticación
-            // Si el token es válido, puedes permitir que la solicitud continúe
-            // Si no es válido, puedes rechazar la solicitud o realizar otra acción
-            // apropiada.
-            // Por simplicidad, aquí solo se muestra cómo imprimir el token.
             System.out.println("Bearer Token: " + token);
+            success = jwtService.validateToken(token);
+            User theUserFromToken = jwtService.getUserFromToken(token);
+            if (theUserFromToken != null) {
+                System.out.println(
+                        "Nombre del usuario " + theUserFromToken.getName() + " id " + theUserFromToken.get_id());
+                User theUser = this.theUserRepository.findById(theUserFromToken.get_id())
+                        .orElse(null);
 
-            return jwtService.validateToken(token);
+                Role theRole = theUser.getRole();
+                String url = request.getRequestURI();
+                String method = request.getMethod();
+                System.out.println("Antes URL " + url + " metodo " + method);
+                url = url.replaceAll("[0-9a-fA-F]{24}", "?");
+                System.out.println("URL " + url + " metodo " + method);
+
+                // Pequeña tarea
+
+                Permission thePermission = this.thePermissionRepository.getPermission(url, method);
+                if (theRole != null && thePermission != null) {
+                    System.out.println("Rol " + theRole.getName() + " Permission " + thePermission.getUrl());
+                    RolePermission theRolePermission = this.theRolePermissionRepository
+                            .getRolePermission(theRole.get_id(), thePermission.get_id());
+                    if (theRolePermission == null) {
+                        success = false;
+                    }
+                } else {
+                    success = false;
+                }
+            }
+
+        } else {
+            success = false;
+
         }
-
-        // Devuelve true para permitir que la solicitud continúe o false para bloquearla
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        return no_success;
+        return success;
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response,
-            Object handler,
-
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
             ModelAndView modelAndView) throws Exception {
         // Lógica a ejecutar después de que se haya manejado la solicitud por el
         // controlador
@@ -55,7 +89,6 @@ public class SecurityInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-
             Exception ex) throws Exception {
         // Lógica a ejecutar después de completar la solicitud, incluso después de la
         // renderización de la vista

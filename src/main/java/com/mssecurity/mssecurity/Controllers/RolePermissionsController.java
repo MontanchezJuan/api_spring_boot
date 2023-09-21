@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mssecurity.mssecurity.Models.Permission;
 import com.mssecurity.mssecurity.Models.Role;
 import com.mssecurity.mssecurity.Models.RolePermission;
-import com.mssecurity.mssecurity.Repositories.PermissionRespository;
-import com.mssecurity.mssecurity.Repositories.RolePermissionRespository;
+import com.mssecurity.mssecurity.Repositories.PermissionRepository;
+import com.mssecurity.mssecurity.Repositories.RolePermissionRepository;
 import com.mssecurity.mssecurity.Repositories.RoleRepository;
 
 @CrossOrigin
@@ -27,13 +27,13 @@ import com.mssecurity.mssecurity.Repositories.RoleRepository;
 @RequestMapping("api/role-permissions")
 public class RolePermissionsController {
     @Autowired
-    private RolePermissionRespository theRolePermissionRepository;
+    private RolePermissionRepository theRolePermissionRepository;
 
     @Autowired
     private RoleRepository theRoleRepository;
 
     @Autowired
-    private PermissionRespository thePermissionRepository;
+    private PermissionRepository thePermissionRepository;
 
     @GetMapping("")
     public List<RolePermission> index() {

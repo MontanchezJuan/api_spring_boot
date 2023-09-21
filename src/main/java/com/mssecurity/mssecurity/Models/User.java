@@ -19,6 +19,9 @@ public class User {
     @DBRef
     private Role role;
 
+    public User() {
+    }
+
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;

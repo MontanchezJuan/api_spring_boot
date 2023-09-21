@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mssecurity.mssecurity.Models.Permission;
-import com.mssecurity.mssecurity.Repositories.PermissionRespository;
+import com.mssecurity.mssecurity.Repositories.PermissionRepository;
 
 @CrossOrigin
 @RestController
 @RequestMapping("api/permissions")
 public class PermissionsController {
     @Autowired
-    private PermissionRespository thePermissionRepository;
+    private PermissionRepository thePermissionRepository;
 
     @GetMapping("")
     public List<Permission> index() {
